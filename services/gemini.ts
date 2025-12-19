@@ -2,27 +2,19 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { ResumeAnalysis, FullRewriteResponse } from "../types";
 
-// Initialize AI with the environment key
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 /**
- * Performs a comprehensive resume health check.
+ * Rapid Health Check using Flash for responsiveness.
  */
 export const analyzeResume = async (resumeText: string): Promise<ResumeAnalysis> => {
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview",
-      contents: `You are an elite executive career coach and ATS expert. Analyze the following resume text for a "Professional Health Check".
+      model: "gemini-3-flash-preview", // Flash for fast initial scan
+      contents: `Analyze this resume text. Act as a high-level ATS auditor.
       
-      CRITERIA:
-      1. IMPACT: Look for quantifiable metrics (percentages, dollar amounts, time saved).
-      2. VERBS: Replace weak, passive verbs with strong action verbs.
-      3. ATS: Identify missing high-value industry keywords.
-      
-      Resume Data:
-      """
-      ${resumeText}
-      """`,
+      Resume Content:
+      "${resumeText}"`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -52,49 +44,35 @@ export const analyzeResume = async (resumeText: string): Promise<ResumeAnalysis>
       }
     });
 
-    const result = JSON.parse(response.text || "{}");
-    
-    // Safety check for free previews
-    if (result.sections && result.sections.length > 0) {
-      result.sections = result.sections.map((s: any, idx: number) => ({
-        ...s,
-        isFree: idx === 0
-      }));
+    const parsed = JSON.parse(response.text || "{}");
+    if (parsed.sections) {
+      parsed.sections = parsed.sections.map((s: any, i: number) => ({ ...s, isFree: i === 0 }));
     }
-    
-    return result;
+    return parsed;
   } catch (error) {
-    console.error("Gemini Health Check Error:", error);
-    throw new Error("Failed to analyze resume. Please try again.");
+    console.error("AI Analysis Error:", error);
+    throw error;
   }
 };
 
 /**
- * Performs a complete, professional, executive-level resume rewrite.
+ * Deep, high-quality rewrite using Pro.
  */
 export const fullRewriteResume = async (resumeText: string): Promise<FullRewriteResponse> => {
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview",
-      contents: `ACT AS A WORLD-CLASS EXECUTIVE RESUME WRITER. 
-      Completely reconstruct the provided resume into a high-impact, modern document.
+      model: "gemini-3-pro-preview", // Pro for superior writing quality
+      contents: `ACT AS AN EXECUTIVE RESUME WRITER. 
+      Completely reconstruct the following resume into a professional, modern, high-impact document using Action-Result bullets and quantifiable metrics.
       
-      RULES:
-      1. Use the "Action-Result" bullet point framework. 
-      2. Every single achievement MUST include a quantifiable metric.
-      3. Use sophisticated, industry-specific vocabulary.
-      4. Format it as a clear text document with professional headings.
-      
-      Original Resume:
-      """
-      ${resumeText}
-      """`,
+      Resume Data:
+      "${resumeText}"`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
           properties: {
-            content: { type: Type.STRING, description: "The full, perfectly formatted text of the new resume" }
+            content: { type: Type.STRING }
           },
           required: ["content"]
         }
@@ -103,7 +81,7 @@ export const fullRewriteResume = async (resumeText: string): Promise<FullRewrite
 
     return JSON.parse(response.text || "{}");
   } catch (error) {
-    console.error("Gemini Full Rewrite Error:", error);
-    throw new Error("The AI writer encountered an error. Please try again.");
+    console.error("AI Rewrite Error:", error);
+    throw error;
   }
 };
