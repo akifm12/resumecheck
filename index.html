@@ -14,7 +14,7 @@
         .blob { filter: blur(60px); opacity: 0.12; z-index: -1; }
 
         @media print {
-            .no-print, header, footer, .blob, button, .sticky, nav, #upload-section { 
+            .no-print, header, footer, .blob, button, .sticky, nav, #upload-section, .modal-backdrop { 
                 display: none !important; 
             }
             body { 
@@ -29,15 +29,11 @@
                 margin: 0 !important; 
                 padding: 0 !important;
             }
-            .bg-white { background: white !important; }
-            .shadow-2xl, .shadow-xl, .shadow-lg, .shadow-md, .shadow-sm {
-                box-shadow: none !important;
-                border: none !important;
-            }
             pre { 
                 font-size: 11pt !important; 
                 line-height: 1.6 !important;
                 color: black !important;
+                white-space: pre-wrap !important;
             }
         }
     </style>

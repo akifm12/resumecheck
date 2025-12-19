@@ -2,19 +2,24 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { ResumeAnalysis, FullRewriteResponse } from "../types";
 
+// The API key is injected by the environment. 
+// For Cloud Run, set this as an environment variable in the GCP Console.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 /**
- * Rapid Health Check using Flash for responsiveness.
+ * Rapid Health Check using Gemini 3 Flash for speed and reliability.
  */
 export const analyzeResume = async (resumeText: string): Promise<ResumeAnalysis> => {
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview", // Flash for fast initial scan
-      contents: `Analyze this resume text. Act as a high-level ATS auditor.
+      model: "gemini-3-flash-preview",
+      contents: `ACT AS AN ELITE RECRUITMENT AUDITOR. 
+      Analyze the provided resume text and provide a brutal, realistic health check.
       
-      Resume Content:
-      "${resumeText}"`,
+      Resume text:
+      """
+      ${resumeText}
+      """`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -45,28 +50,42 @@ export const analyzeResume = async (resumeText: string): Promise<ResumeAnalysis>
     });
 
     const parsed = JSON.parse(response.text || "{}");
-    if (parsed.sections) {
-      parsed.sections = parsed.sections.map((s: any, i: number) => ({ ...s, isFree: i === 0 }));
+    
+    // Safety check: Ensure at least one section is marked free for the preview
+    if (parsed.sections && parsed.sections.length > 0) {
+      parsed.sections = parsed.sections.map((s: any, idx: number) => ({
+        ...s,
+        isFree: idx === 0
+      }));
     }
+    
     return parsed;
   } catch (error) {
-    console.error("AI Analysis Error:", error);
-    throw error;
+    console.error("Gemini SDK Analysis Error:", error);
+    throw new Error("AI analysis timed out. Please try a shorter version of your resume.");
   }
 };
 
 /**
- * Deep, high-quality rewrite using Pro.
+ * Executive Rewrite using Gemini 3 Pro for superior writing quality.
  */
 export const fullRewriteResume = async (resumeText: string): Promise<FullRewriteResponse> => {
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview", // Pro for superior writing quality
-      contents: `ACT AS AN EXECUTIVE RESUME WRITER. 
-      Completely reconstruct the following resume into a professional, modern, high-impact document using Action-Result bullets and quantifiable metrics.
+      model: "gemini-3-pro-preview",
+      contents: `ACT AS A WORLD-CLASS EXECUTIVE RESUME WRITER. 
+      Completely transform the following resume into a modern, high-impact career document.
       
-      Resume Data:
-      "${resumeText}"`,
+      GUIDELINES:
+      - Use strong action verbs.
+      - Focus heavily on quantifiable results (Impact).
+      - Ensure professional, executive tone.
+      - Output the result as a cleanly formatted text document.
+      
+      Original Resume:
+      """
+      ${resumeText}
+      """`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -81,7 +100,7 @@ export const fullRewriteResume = async (resumeText: string): Promise<FullRewrite
 
     return JSON.parse(response.text || "{}");
   } catch (error) {
-    console.error("AI Rewrite Error:", error);
-    throw error;
+    console.error("Gemini SDK Rewrite Error:", error);
+    throw new Error("Full rewrite failed. Please check your network and try again.");
   }
 };
