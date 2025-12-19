@@ -2,7 +2,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { ResumeAnalysis, FullRewriteResponse } from "../types";
 
-// The API key is injected via environment variables
+// Initialize AI with the environment key
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 /**
@@ -15,11 +15,11 @@ export const analyzeResume = async (resumeText: string): Promise<ResumeAnalysis>
       contents: `You are an elite executive career coach and ATS expert. Analyze the following resume text for a "Professional Health Check".
       
       CRITERIA:
-      1. IMPACT: Look for quantifiable metrics.
-      2. VERBS: Replace weak verbs with power verbs.
-      3. ATS: Identify missing industry keywords.
+      1. IMPACT: Look for quantifiable metrics (percentages, dollar amounts, time saved).
+      2. VERBS: Replace weak, passive verbs with strong action verbs.
+      3. ATS: Identify missing high-value industry keywords.
       
-      Resume:
+      Resume Data:
       """
       ${resumeText}
       """`,
@@ -54,7 +54,7 @@ export const analyzeResume = async (resumeText: string): Promise<ResumeAnalysis>
 
     const result = JSON.parse(response.text || "{}");
     
-    // Logic: First section is always free for the user to see the quality.
+    // Safety check for free previews
     if (result.sections && result.sections.length > 0) {
       result.sections = result.sections.map((s: any, idx: number) => ({
         ...s,
@@ -64,28 +64,28 @@ export const analyzeResume = async (resumeText: string): Promise<ResumeAnalysis>
     
     return result;
   } catch (error) {
-    console.error("Gemini Analysis Error:", error);
-    throw new Error("AI analysis failed. Please try again.");
+    console.error("Gemini Health Check Error:", error);
+    throw new Error("Failed to analyze resume. Please try again.");
   }
 };
 
 /**
- * Performs a complete, professional resume rewrite.
+ * Performs a complete, professional, executive-level resume rewrite.
  */
 export const fullRewriteResume = async (resumeText: string): Promise<FullRewriteResponse> => {
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-preview",
-      contents: `ACT AS A TOP-TIER WORLD-CLASS RESUME WRITER. 
-      Completely rewrite the following resume into a professional, modern, high-impact version. 
+      contents: `ACT AS A WORLD-CLASS EXECUTIVE RESUME WRITER. 
+      Completely reconstruct the provided resume into a high-impact, modern document.
       
-      INSTRUCTIONS:
-      1. Use the "Action-Result" bullet point format. 
-      2. Integrate quantifiable metrics (%, $, time) for every achievement. 
-      3. Ensure the tone is sophisticated and executive-ready.
-      4. Structure the document with clear headings: Contact Info (Placeholder), Summary, Professional Experience, Education, Skills.
+      RULES:
+      1. Use the "Action-Result" bullet point framework. 
+      2. Every single achievement MUST include a quantifiable metric.
+      3. Use sophisticated, industry-specific vocabulary.
+      4. Format it as a clear text document with professional headings.
       
-      Original Resume Data:
+      Original Resume:
       """
       ${resumeText}
       """`,
@@ -94,7 +94,7 @@ export const fullRewriteResume = async (resumeText: string): Promise<FullRewrite
         responseSchema: {
           type: Type.OBJECT,
           properties: {
-            content: { type: Type.STRING, description: "The full text of the rewritten resume" }
+            content: { type: Type.STRING, description: "The full, perfectly formatted text of the new resume" }
           },
           required: ["content"]
         }
@@ -103,7 +103,7 @@ export const fullRewriteResume = async (resumeText: string): Promise<FullRewrite
 
     return JSON.parse(response.text || "{}");
   } catch (error) {
-    console.error("Gemini Rewrite Error:", error);
-    throw new Error("Failed to generate a full rewrite.");
+    console.error("Gemini Full Rewrite Error:", error);
+    throw new Error("The AI writer encountered an error. Please try again.");
   }
 };

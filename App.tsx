@@ -24,11 +24,13 @@ const App: React.FC = () => {
   const [pendingText, setPendingText] = useState<string | null>(null);
   const [loadingMessage, setLoadingMessage] = useState('Initializing AI scan...');
 
-  // Effect to load "Saved" resume under the user's "login" profile
+  // PERSISTENCE: Load saved data when user "logs in"
   useEffect(() => {
     if (user) {
-      const saved = localStorage.getItem(`rewritten_${user.email}`);
-      if (saved) setRewrittenResume(saved);
+      const savedResume = localStorage.getItem(`resume_redo_${user.email}`);
+      if (savedResume) {
+        setRewrittenResume(savedResume);
+      }
     }
   }, [user]);
 
@@ -45,27 +47,25 @@ const App: React.FC = () => {
   const executeAnalysis = async (text: string) => {
     setView('analyzing');
     const messages = [
-      "Parsing your professional history...",
-      "Extracting key impact metrics...",
-      "Comparing against industry benchmarks...",
-      "Running semantic grammar checks...",
-      "Identifying high-impact keywords...",
-      "Finalizing your health score..."
+      "Scanning professional history...",
+      "Analyzing impact metrics...",
+      "Identifying keyword gaps...",
+      "Finalizing health report..."
     ];
     
     let msgIdx = 0;
     const interval = setInterval(() => {
       msgIdx = (msgIdx + 1) % messages.length;
       setLoadingMessage(messages[msgIdx]);
-    }, 2000);
+    }, 2500);
 
     try {
       const result = await analyzeResume(text);
       setAnalysis(result);
       setView('results');
     } catch (error) {
-      console.error("Analysis failed", error);
-      alert("Something went wrong with the AI analysis. Please try again.");
+      console.error("Analysis failed:", error);
+      alert("We couldn't process your resume. Please try again with different text.");
       setView('landing');
     } finally {
       clearInterval(interval);
@@ -73,34 +73,33 @@ const App: React.FC = () => {
   };
 
   const handleFullRewrite = async () => {
-    // Check if user has required plan (Unlimited or Super Premium)
+    // Check for paid plan
     if (plan === Plan.FREE || plan === Plan.BASIC) {
       setView('pricing');
       return;
     }
 
     if (!originalText) {
-      alert("Please upload or paste your resume first.");
       setView('landing');
       return;
     }
 
     setView('analyzing');
-    setLoadingMessage("AI is crafting your new professional story...");
+    setLoadingMessage("Elite AI writer is reconstructing your career story...");
     
     try {
       const data = await fullRewriteResume(originalText);
       setRewrittenResume(data.content);
       
-      // Save under "Login" (localStorage)
+      // SAVE TO USER VAULT
       if (user) {
-        localStorage.setItem(`rewritten_${user.email}`, data.content);
+        localStorage.setItem(`resume_redo_${user.email}`, data.content);
       }
       
       setView('full-rewrite');
     } catch (error) {
-      console.error("Rewrite failed", error);
-      alert("Failed to rewrite your resume. Please try again.");
+      console.error("Full rewrite failed:", error);
+      alert("Our writers encountered an issue. Please try again.");
       setView('results');
     }
   };
@@ -132,8 +131,8 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden">
-      {/* Background Blobs */}
+    <div className="min-h-screen flex flex-col relative overflow-hidden bg-slate-50">
+      {/* Visual background elements */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500 rounded-full blob -translate-y-1/2 translate-x-1/2 no-print"></div>
       <div className="absolute bottom-0 left-0 w-80 h-80 bg-emerald-500 rounded-full blob translate-y-1/2 -translate-x-1/2 no-print"></div>
 
@@ -150,11 +149,14 @@ const App: React.FC = () => {
         )}
 
         {view === 'analyzing' && (
-          <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6">
-            <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+          <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8">
+            <div className="relative">
+              <div className="w-20 h-20 border-4 border-slate-100 rounded-full"></div>
+              <div className="absolute top-0 left-0 w-20 h-20 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+            </div>
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-slate-800 mb-2">AI Processing...</h2>
-              <p className="text-slate-500 animate-pulse">{loadingMessage}</p>
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">AI Engine Active</h2>
+              <p className="text-slate-500 font-medium animate-pulse">{loadingMessage}</p>
             </div>
           </div>
         )}
@@ -195,8 +197,8 @@ const App: React.FC = () => {
         />
       )}
 
-      <footer className="py-8 border-t border-slate-200 text-center text-slate-400 text-sm no-print">
-        <p>© 2024 ResumeGenius AI. Professional Resume Optimization.</p>
+      <footer className="py-12 border-t border-slate-200 text-center text-slate-400 text-sm no-print">
+        <p>© 2024 ResumeGenius AI. Professional Document Intelligence.</p>
       </footer>
     </div>
   );
