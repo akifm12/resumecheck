@@ -14,7 +14,11 @@
         .blob { filter: blur(60px); opacity: 0.12; z-index: -1; }
 
         @media print {
-            .no-print, header, footer, .blob, button, .sticky, nav, #upload-section, .modal-backdrop { 
+            @page {
+                margin: 0;
+                size: auto;
+            }
+            .no-print, header, footer, .blob, button, .sticky, nav, #upload-section, .modal-backdrop, .toolbar { 
                 display: none !important; 
             }
             body { 
@@ -23,18 +27,24 @@
                 padding: 0 !important;
                 margin: 0 !important;
             }
+            #root > div { 
+                background: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+            }
             .container { 
                 max-width: 100% !important; 
                 width: 100% !important; 
                 margin: 0 !important; 
                 padding: 0 !important;
             }
-            pre { 
-                font-size: 11pt !important; 
-                line-height: 1.6 !important;
-                color: black !important;
-                white-space: pre-wrap !important;
+            .shadow-2xl, .shadow-xl, .shadow-lg, .shadow-md, .shadow-sm {
+                box-shadow: none !important;
+                border: none !important;
             }
+            .bg-white { background: white !important; }
+            .prose { color: black !important; }
         }
     </style>
 <script type="importmap">

@@ -2,21 +2,13 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { ResumeAnalysis, FullRewriteResponse } from "../types";
 
-// The API key is injected by the environment. 
-// For Cloud Run, set this as an environment variable in the GCP Console.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-/**
- * Rapid Health Check using Gemini 3 Flash for speed and reliability.
- */
 export const analyzeResume = async (resumeText: string): Promise<ResumeAnalysis> => {
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `ACT AS AN ELITE RECRUITMENT AUDITOR. 
-      Analyze the provided resume text and provide a brutal, realistic health check.
-      
-      Resume text:
+      contents: `ACT AS AN ELITE RECRUITMENT AUDITOR. Analyze the following resume:
       """
       ${resumeText}
       """`,
@@ -50,39 +42,24 @@ export const analyzeResume = async (resumeText: string): Promise<ResumeAnalysis>
     });
 
     const parsed = JSON.parse(response.text || "{}");
-    
-    // Safety check: Ensure at least one section is marked free for the preview
-    if (parsed.sections && parsed.sections.length > 0) {
-      parsed.sections = parsed.sections.map((s: any, idx: number) => ({
-        ...s,
-        isFree: idx === 0
-      }));
+    if (parsed.sections) {
+      parsed.sections = parsed.sections.map((s: any, idx: number) => ({ ...s, isFree: idx === 0 }));
     }
-    
     return parsed;
   } catch (error) {
-    console.error("Gemini SDK Analysis Error:", error);
-    throw new Error("AI analysis timed out. Please try a shorter version of your resume.");
+    console.error("Analysis Error:", error);
+    throw new Error("Analysis failed. Please try again.");
   }
 };
 
-/**
- * Executive Rewrite using Gemini 3 Pro for superior writing quality.
- */
 export const fullRewriteResume = async (resumeText: string): Promise<FullRewriteResponse> => {
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-preview",
-      contents: `ACT AS A WORLD-CLASS EXECUTIVE RESUME WRITER. 
-      Completely transform the following resume into a modern, high-impact career document.
+      contents: `ACT AS A TOP-TIER EXECUTIVE RESUME WRITER. 
+      Completely transform this resume into a professional, structured document using the Action-Result framework.
       
-      GUIDELINES:
-      - Use strong action verbs.
-      - Focus heavily on quantifiable results (Impact).
-      - Ensure professional, executive tone.
-      - Output the result as a cleanly formatted text document.
-      
-      Original Resume:
+      Resume text to rewrite:
       """
       ${resumeText}
       """`,
@@ -91,7 +68,64 @@ export const fullRewriteResume = async (resumeText: string): Promise<FullRewrite
         responseSchema: {
           type: Type.OBJECT,
           properties: {
-            content: { type: Type.STRING }
+            content: {
+              type: Type.OBJECT,
+              properties: {
+                header: {
+                  type: Type.OBJECT,
+                  properties: {
+                    name: { type: Type.STRING },
+                    title: { type: Type.STRING },
+                    email: { type: Type.STRING },
+                    phone: { type: Type.STRING },
+                    location: { type: Type.STRING },
+                    linkedin: { type: Type.STRING },
+                    website: { type: Type.STRING }
+                  },
+                  required: ["name", "title", "email", "phone", "location"]
+                },
+                summary: { type: Type.STRING },
+                experience: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      company: { type: Type.STRING },
+                      position: { type: Type.STRING },
+                      dateRange: { type: Type.STRING },
+                      location: { type: Type.STRING },
+                      bullets: { type: Type.ARRAY, items: { type: Type.STRING } }
+                    },
+                    required: ["company", "position", "dateRange", "location", "bullets"]
+                  }
+                },
+                education: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      school: { type: Type.STRING },
+                      degree: { type: Type.STRING },
+                      dateRange: { type: Type.STRING },
+                      location: { type: Type.STRING }
+                    },
+                    required: ["school", "degree", "dateRange", "location"]
+                  }
+                },
+                skills: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      category: { type: Type.STRING },
+                      items: { type: Type.ARRAY, items: { type: Type.STRING } }
+                    },
+                    required: ["category", "items"]
+                  }
+                }
+              },
+              required: ["header", "summary", "experience", "education", "skills"]
+            }
           },
           required: ["content"]
         }
@@ -100,7 +134,7 @@ export const fullRewriteResume = async (resumeText: string): Promise<FullRewrite
 
     return JSON.parse(response.text || "{}");
   } catch (error) {
-    console.error("Gemini SDK Rewrite Error:", error);
-    throw new Error("Full rewrite failed. Please check your network and try again.");
+    console.error("Rewrite Error:", error);
+    throw new Error("Full rewrite failed.");
   }
 };

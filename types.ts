@@ -4,7 +4,7 @@ export interface ResumeSection {
   originalText: string;
   feedback: string;
   suggestedRewrite: string;
-  score: number; // 0-100
+  score: number;
   isFree: boolean;
 }
 
@@ -31,6 +31,36 @@ export enum Plan {
   SUPER_PREMIUM = 'SUPER_PREMIUM'
 }
 
+export interface StructuredResume {
+  header: {
+    name: string;
+    title: string;
+    email: string;
+    phone: string;
+    location: string;
+    linkedin?: string;
+    website?: string;
+  };
+  summary: string;
+  experience: Array<{
+    company: string;
+    position: string;
+    dateRange: string;
+    location: string;
+    bullets: string[];
+  }>;
+  education: Array<{
+    school: string;
+    degree: string;
+    dateRange: string;
+    location: string;
+  }>;
+  skills: Array<{
+    category: string;
+    items: string[];
+  }>;
+}
+
 export interface FullRewriteResponse {
-  content: string; // The full markdown/text of the new resume
+  content: StructuredResume;
 }
