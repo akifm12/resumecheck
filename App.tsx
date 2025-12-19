@@ -24,7 +24,7 @@ const App: React.FC = () => {
   const [pendingText, setPendingText] = useState<string | null>(null);
   const [loadingMessage, setLoadingMessage] = useState('Initializing AI scan...');
 
-  // Effect to load "Saved" resume under the user's "login"
+  // Effect to load "Saved" resume under the user's "login" profile
   useEffect(() => {
     if (user) {
       const saved = localStorage.getItem(`rewritten_${user.email}`);
@@ -73,14 +73,14 @@ const App: React.FC = () => {
   };
 
   const handleFullRewrite = async () => {
-    // Check if user has required plan
+    // Check if user has required plan (Unlimited or Super Premium)
     if (plan === Plan.FREE || plan === Plan.BASIC) {
       setView('pricing');
       return;
     }
 
     if (!originalText) {
-      alert("No resume text found. Please upload your resume first.");
+      alert("Please upload or paste your resume first.");
       setView('landing');
       return;
     }
@@ -92,7 +92,7 @@ const App: React.FC = () => {
       const data = await fullRewriteResume(originalText);
       setRewrittenResume(data.content);
       
-      // Persist "under login"
+      // Save under "Login" (localStorage)
       if (user) {
         localStorage.setItem(`rewritten_${user.email}`, data.content);
       }
@@ -196,7 +196,7 @@ const App: React.FC = () => {
       )}
 
       <footer className="py-8 border-t border-slate-200 text-center text-slate-400 text-sm no-print">
-        <p>© 2024 ResumeGenius AI. Built for the Middle East career market.</p>
+        <p>© 2024 ResumeGenius AI. Professional Resume Optimization.</p>
       </footer>
     </div>
   );

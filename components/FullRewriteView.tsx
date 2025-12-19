@@ -12,7 +12,7 @@ const FullRewriteView: React.FC<Props> = ({ content, onBack }) => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `Rewritten_Professional_Resume_${new Date().toLocaleDateString().replace(/\//g, '-')}.txt`;
+    link.download = `Optimized_Resume_${new Date().toLocaleDateString().replace(/\//g, '-')}.txt`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -20,12 +20,13 @@ const FullRewriteView: React.FC<Props> = ({ content, onBack }) => {
   };
 
   const handlePrint = () => {
+    // index.html has @media print styles to hide everything except this document
     window.print();
   };
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-24 animate-in fade-in zoom-in-95 duration-500">
-      <div className="flex items-center justify-between no-print bg-white/50 p-4 rounded-2xl border border-slate-100 backdrop-blur-sm sticky top-20 z-40">
+      <div className="flex items-center justify-between no-print bg-white/60 p-4 rounded-2xl border border-slate-100 backdrop-blur-md sticky top-20 z-40">
         <button 
           onClick={onBack}
           className="flex items-center text-slate-500 hover:text-slate-800 font-bold transition-colors text-sm"
@@ -46,16 +47,16 @@ const FullRewriteView: React.FC<Props> = ({ content, onBack }) => {
             className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-xs hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 flex items-center"
           >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-            Save as PDF
+            Download PDF
           </button>
         </div>
       </div>
 
-      {/* Document "Paper" */}
+      {/* Document "Paper" Layout */}
       <div className="bg-white shadow-2xl rounded-sm p-8 md:p-16 min-h-[1100px] border border-slate-100 flex flex-col items-center">
         <div className="w-full max-w-[800px]">
           <div className="prose prose-slate max-w-none">
-            {/* The resume content is rendered in a serif font to look like a real document */}
+            {/* Serif font for a professional document look */}
             <pre className="whitespace-pre-wrap font-serif text-slate-800 leading-relaxed text-sm md:text-base tracking-wide bg-transparent border-none p-0">
               {content}
             </pre>
@@ -64,8 +65,8 @@ const FullRewriteView: React.FC<Props> = ({ content, onBack }) => {
       </div>
       
       <div className="text-center space-y-2 no-print">
-        <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">AI Professional Reconstruct v1.0</p>
-        <p className="text-slate-400 text-xs">This document is stored securely in your local profile vault.</p>
+        <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">AI Professional Resume Reconstruction</p>
+        <p className="text-slate-400 text-xs">This document is encrypted and stored in your profile vault.</p>
       </div>
     </div>
   );

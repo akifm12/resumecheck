@@ -2,6 +2,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { ResumeAnalysis, FullRewriteResponse } from "../types";
 
+// The API key is injected via environment variables
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 /**
@@ -64,7 +65,7 @@ export const analyzeResume = async (resumeText: string): Promise<ResumeAnalysis>
     return result;
   } catch (error) {
     console.error("Gemini Analysis Error:", error);
-    throw new Error("AI analysis failed. Please check your connection or try again later.");
+    throw new Error("AI analysis failed. Please try again.");
   }
 };
 
@@ -82,7 +83,7 @@ export const fullRewriteResume = async (resumeText: string): Promise<FullRewrite
       1. Use the "Action-Result" bullet point format. 
       2. Integrate quantifiable metrics (%, $, time) for every achievement. 
       3. Ensure the tone is sophisticated and executive-ready.
-      4. Structure the document with clear headings: Contact, Summary, Experience, Education, Skills.
+      4. Structure the document with clear headings: Contact Info (Placeholder), Summary, Professional Experience, Education, Skills.
       
       Original Resume Data:
       """
