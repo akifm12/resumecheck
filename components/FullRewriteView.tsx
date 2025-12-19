@@ -8,31 +8,39 @@ interface Props {
 }
 
 const FullRewriteView: React.FC<Props> = ({ resume, onBack }) => {
-  const [accentColor, setAccentColor] = useState('#4f46e5'); // Default Indigo
+  const [accentColor, setAccentColor] = useState('#1e293b'); // Default Slate 800 for Professionalism
 
   const handlePrint = () => {
     window.print();
   };
 
   const handleDownloadTxt = () => {
-    let text = `${resume.header.name}\n${resume.header.title}\n${resume.header.email} | ${resume.header.phone} | ${resume.header.location}\n\n`;
-    text += `SUMMARY\n${resume.summary}\n\n`;
-    text += `EXPERIENCE\n`;
+    let text = `${resume.header.name.toUpperCase()}\n`;
+    text += `${resume.header.title}\n`;
+    text += `${resume.header.email} | ${resume.header.phone} | ${resume.header.location}\n`;
+    if (resume.header.linkedin) text += `LinkedIn: ${resume.header.linkedin}\n`;
+    text += `\nSUMMARY\n${resume.summary}\n\n`;
+    text += `PROFESSIONAL EXPERIENCE\n`;
     resume.experience.forEach(exp => {
-      text += `${exp.position} | ${exp.company}\n${exp.dateRange} | ${exp.location}\n`;
-      exp.bullets.forEach(b => text += `- ${b}\n`);
-      text += `\n`;
+      text += `\n${exp.company} | ${exp.location}\n`;
+      text += `${exp.position} | ${exp.dateRange}\n`;
+      exp.bullets.forEach(b => text += `• ${b}\n`);
     });
-    text += `EDUCATION\n`;
+    text += `\nEDUCATION\n`;
     resume.education.forEach(edu => {
-      text += `${edu.degree}\n${edu.school} | ${edu.dateRange}\n\n`;
+      text += `${edu.school} | ${edu.location}\n`;
+      text += `${edu.degree} | ${edu.dateRange}\n`;
+    });
+    text += `\nSKILLS & EXPERTISE\n`;
+    resume.skills.forEach(skill => {
+      text += `${skill.category}: ${skill.items.join(', ')}\n`;
     });
     
     const blob = new Blob([text], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${resume.header.name.replace(/\s/g, '_')}_Resume.txt`;
+    link.download = `${resume.header.name.replace(/\s/g, '_')}_Pro_Resume.txt`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -42,100 +50,113 @@ const FullRewriteView: React.FC<Props> = ({ resume, onBack }) => {
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-24 animate-in fade-in zoom-in-95 duration-700">
       {/* Designer Toolbar */}
-      <div className="flex flex-col md:flex-row items-center justify-between no-print bg-white/80 p-6 rounded-3xl border border-slate-200 backdrop-blur-xl sticky top-20 z-40 shadow-2xl shadow-indigo-100/50 gap-4">
-        <div className="flex items-center space-x-6">
+      <div className="flex flex-col md:flex-row items-center justify-between no-print bg-white/90 p-5 rounded-2xl border border-slate-200 backdrop-blur-xl sticky top-20 z-40 shadow-xl shadow-indigo-100/30 gap-4">
+        <div className="flex items-center space-x-4">
           <button 
             onClick={onBack}
             className="flex items-center text-slate-500 hover:text-slate-900 font-bold transition-all text-sm group"
           >
-            <svg className="w-5 h-5 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            Edit Analysis
+            <svg className="w-4 h-4 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Back to Audit
           </button>
           
-          <div className="h-8 w-px bg-slate-200"></div>
+          <div className="h-6 w-px bg-slate-200"></div>
 
-          <div className="flex items-center space-x-3">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Accent</span>
-            <div className="flex space-x-2">
-              {['#4f46e5', '#0f172a', '#10b981', '#ef4444'].map(color => (
+          <div className="flex items-center space-x-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Template Tone</span>
+            <div className="flex space-x-1.5">
+              {[
+                { name: 'Executive', color: '#1e293b' },
+                { name: 'Modern', color: '#4f46e5' },
+                { name: 'Growth', color: '#059669' },
+                { name: 'Creative', color: '#db2777' }
+              ].map(theme => (
                 <button
-                  key={color}
-                  onClick={() => setAccentColor(color)}
-                  className={`w-6 h-6 rounded-full border-2 transition-all ${accentColor === color ? 'border-white ring-2 ring-slate-300 scale-110' : 'border-transparent opacity-60 hover:opacity-100'}`}
-                  style={{ backgroundColor: color }}
+                  key={theme.name}
+                  title={theme.name}
+                  onClick={() => setAccentColor(theme.color)}
+                  className={`w-6 h-6 rounded-full border-2 transition-all ${accentColor === theme.color ? 'border-white ring-2 ring-slate-300 scale-110' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                  style={{ backgroundColor: theme.color }}
                 />
               ))}
             </div>
           </div>
         </div>
 
-        <div className="flex space-x-3 w-full md:w-auto">
+        <div className="flex space-x-2 w-full md:w-auto">
           <button 
             onClick={handleDownloadTxt}
-            className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-200 rounded-2xl text-slate-700 font-bold text-xs hover:bg-slate-50 transition-all shadow-sm flex items-center justify-center"
+            className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-700 font-bold text-xs hover:bg-slate-50 transition-all shadow-sm"
           >
-            Export Text
+            Plain Text
           </button>
           <button 
             onClick={handlePrint}
-            className="flex-1 md:flex-none px-8 py-3 bg-slate-900 text-white rounded-2xl font-black text-xs hover:bg-black transition-all shadow-xl shadow-slate-300 flex items-center justify-center"
+            className="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-black text-xs hover:bg-black transition-all shadow-lg flex items-center justify-center"
           >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-            Download Designer PDF
+            Print Professional PDF
           </button>
         </div>
       </div>
 
-      {/* The Designer Canvas (A4 Aspect) */}
-      <div className="bg-white shadow-[0_40px_100px_-20px_rgba(0,0,0,0.1)] rounded-sm p-12 md:p-20 min-h-[1100px] border border-slate-100 flex flex-col items-center">
-        <div className="w-full max-w-[800px] text-slate-900 font-serif">
+      {/* The Designer Canvas (Standard Business Layout) */}
+      <div className="bg-white shadow-[0_30px_80px_-15px_rgba(0,0,0,0.1)] rounded-sm p-12 md:p-16 min-h-[1120px] border border-slate-100 flex flex-col items-center print:shadow-none print:border-none">
+        <div className="w-full max-w-[760px] text-slate-900 font-serif leading-relaxed">
           
-          {/* Header */}
-          <header className="mb-12 border-b-2 pb-8" style={{ borderColor: accentColor }}>
-            <h1 className="text-5xl font-black tracking-tighter text-slate-900 mb-2 font-sans uppercase">
+          {/* Header Section */}
+          <header className="text-center mb-10 border-b pb-8" style={{ borderColor: `${accentColor}20` }}>
+            <h1 className="text-4xl font-black tracking-tight text-slate-900 mb-1 font-sans uppercase">
               {resume.header.name}
             </h1>
-            <p className="text-xl font-medium tracking-wide mb-6 font-sans" style={{ color: accentColor }}>
+            <p className="text-lg font-bold tracking-wider mb-4 font-sans uppercase" style={{ color: accentColor }}>
               {resume.header.title}
             </p>
-            <div className="flex flex-wrap gap-y-2 gap-x-6 text-[13px] text-slate-500 font-sans font-medium uppercase tracking-wider">
-              <span className="flex items-center"><svg className="w-3.5 h-3.5 mr-1.5 opacity-40" fill="currentColor" viewBox="0 0 20 20"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path></svg> {resume.header.email}</span>
-              <span className="flex items-center"><svg className="w-3.5 h-3.5 mr-1.5 opacity-40" fill="currentColor" viewBox="0 0 20 20"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path></svg> {resume.header.phone}</span>
-              <span className="flex items-center"><svg className="w-3.5 h-3.5 mr-1.5 opacity-40" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"></path></svg> {resume.header.location}</span>
-              {resume.header.linkedin && <span className="flex items-center">LinkedIn: {resume.header.linkedin}</span>}
+            <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[12px] text-slate-500 font-sans font-medium uppercase tracking-tight">
+              <span>{resume.header.email}</span>
+              <span className="opacity-30">•</span>
+              <span>{resume.header.phone}</span>
+              <span className="opacity-30">•</span>
+              <span>{resume.header.location}</span>
+              {resume.header.linkedin && (
+                <>
+                  <span className="opacity-30">•</span>
+                  <span>LinkedIn: {resume.header.linkedin}</span>
+                </>
+              )}
             </div>
           </header>
 
-          {/* Summary */}
-          <section className="mb-10">
-            <h2 className="text-[12px] font-black tracking-[0.3em] uppercase mb-4 font-sans flex items-center" style={{ color: accentColor }}>
+          {/* Professional Summary */}
+          <section className="mb-8">
+            <h2 className="text-[11px] font-black tracking-[0.25em] uppercase mb-3 font-sans border-b-2 inline-block pb-0.5" style={{ borderColor: accentColor, color: accentColor }}>
               Professional Summary
             </h2>
-            <p className="text-[15px] leading-[1.7] text-slate-700 italic">
+            <p className="text-[14.5px] text-slate-700 leading-6">
               {resume.summary}
             </p>
           </section>
 
-          {/* Experience */}
-          <section className="mb-10">
-            <h2 className="text-[12px] font-black tracking-[0.3em] uppercase mb-6 font-sans" style={{ color: accentColor }}>
-              Experience
+          {/* Experience Section */}
+          <section className="mb-8">
+            <h2 className="text-[11px] font-black tracking-[0.25em] uppercase mb-5 font-sans border-b-2 inline-block pb-0.5" style={{ borderColor: accentColor, color: accentColor }}>
+              Professional Experience
             </h2>
-            <div className="space-y-8">
+            <div className="space-y-6">
               {resume.experience.map((exp, idx) => (
-                <div key={idx} className="relative">
-                  <div className="flex justify-between items-baseline mb-1">
-                    <h3 className="text-[17px] font-bold text-slate-900 font-sans">{exp.position}</h3>
-                    <span className="text-[13px] font-medium text-slate-400 font-sans uppercase tracking-wider">{exp.dateRange}</span>
+                <div key={idx} className="group">
+                  <div className="flex justify-between items-baseline mb-0.5">
+                    <h3 className="text-[16px] font-bold text-slate-900 font-sans">{exp.company}</h3>
+                    <span className="text-[12px] font-bold text-slate-500 font-sans uppercase tracking-tighter">{exp.dateRange}</span>
                   </div>
-                  <div className="flex justify-between items-baseline mb-4">
-                    <span className="text-[15px] font-semibold text-slate-600 italic">{exp.company}</span>
-                    <span className="text-[13px] font-medium text-slate-400 font-sans">{exp.location}</span>
+                  <div className="flex justify-between items-baseline mb-2.5">
+                    <span className="text-[14px] font-bold italic text-slate-600 font-sans">{exp.position}</span>
+                    <span className="text-[12px] font-medium text-slate-400 font-sans">{exp.location}</span>
                   </div>
-                  <ul className="space-y-3">
+                  <ul className="space-y-1.5">
                     {exp.bullets.map((bullet, bIdx) => (
-                      <li key={bIdx} className="text-[14.5px] leading-[1.6] text-slate-700 relative pl-5">
-                        <span className="absolute left-0 top-2 w-1.5 h-1.5 rounded-full opacity-30" style={{ backgroundColor: accentColor }}></span>
+                      <li key={bIdx} className="text-[14px] text-slate-700 relative pl-4 leading-normal">
+                        <span className="absolute left-0 top-[7px] w-1.5 h-1.5 border border-slate-300 rounded-full" style={{ backgroundColor: `${accentColor}10` }}></span>
                         {bullet}
                       </li>
                     ))}
@@ -145,50 +166,55 @@ const FullRewriteView: React.FC<Props> = ({ resume, onBack }) => {
             </div>
           </section>
 
-          <div className="grid grid-cols-2 gap-12">
-            {/* Education */}
-            <section>
-              <h2 className="text-[12px] font-black tracking-[0.3em] uppercase mb-6 font-sans" style={{ color: accentColor }}>
-                Education
-              </h2>
-              <div className="space-y-6">
-                {resume.education.map((edu, idx) => (
-                  <div key={idx}>
-                    <h3 className="text-[15px] font-bold text-slate-900 font-sans mb-1">{edu.degree}</h3>
-                    <p className="text-[14px] text-slate-600 mb-1">{edu.school}</p>
-                    <p className="text-[12px] font-medium text-slate-400 uppercase font-sans">{edu.dateRange}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Skills */}
-            <section>
-              <h2 className="text-[12px] font-black tracking-[0.3em] uppercase mb-6 font-sans" style={{ color: accentColor }}>
-                Expertise
-              </h2>
-              <div className="space-y-5">
-                {resume.skills.map((skill, idx) => (
-                  <div key={idx}>
-                    <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 font-sans">{skill.category}</h3>
-                    <div className="flex flex-wrap gap-x-3 gap-y-1.5">
-                      {skill.items.map((item, iIdx) => (
-                        <span key={iIdx} className="text-[14px] text-slate-700 font-medium">
-                          {item}{iIdx < skill.items.length - 1 ? ',' : ''}
-                        </span>
-                      ))}
+          {/* Bottom Grid for Education and Skills */}
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-8 border-t pt-8" style={{ borderColor: `${accentColor}10` }}>
+            <div className="md:col-span-2 space-y-8">
+              {/* Education */}
+              <section>
+                <h2 className="text-[11px] font-black tracking-[0.25em] uppercase mb-4 font-sans border-b-2 inline-block pb-0.5" style={{ borderColor: accentColor, color: accentColor }}>
+                  Education
+                </h2>
+                <div className="space-y-4">
+                  {resume.education.map((edu, idx) => (
+                    <div key={idx}>
+                      <h3 className="text-[14px] font-bold text-slate-900 font-sans leading-tight">{edu.degree}</h3>
+                      <p className="text-[13px] text-slate-600 font-sans mt-0.5">{edu.school}</p>
+                      <p className="text-[11px] font-bold text-slate-400 uppercase font-sans mt-0.5">{edu.dateRange}</p>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </section>
+                  ))}
+                </div>
+              </section>
+            </div>
+
+            <div className="md:col-span-3">
+              {/* Skills */}
+              <section>
+                <h2 className="text-[11px] font-black tracking-[0.25em] uppercase mb-4 font-sans border-b-2 inline-block pb-0.5" style={{ borderColor: accentColor, color: accentColor }}>
+                  Core Competencies
+                </h2>
+                <div className="grid grid-cols-1 gap-4">
+                  {resume.skills.map((skill, idx) => (
+                    <div key={idx} className="flex flex-col">
+                      <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 font-sans">{skill.category}</h3>
+                      <div className="flex flex-wrap gap-x-2 gap-y-1">
+                        {skill.items.map((item, iIdx) => (
+                          <span key={iIdx} className="text-[13.5px] text-slate-700 font-medium">
+                            {item}{iIdx < skill.items.length - 1 ? ' • ' : ''}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
           </div>
         </div>
       </div>
       
       <div className="text-center no-print">
-         <p className="text-slate-400 text-sm font-medium">✨ Designer Preview Mode Active</p>
-         <p className="text-slate-300 text-xs mt-1 italic">Optimized for high-end printers and professional ATS readers.</p>
+         <p className="text-slate-400 text-xs font-medium uppercase tracking-widest">Certified AI Designer Draft</p>
+         <p className="text-slate-300 text-[10px] mt-1 italic italic">Optimized for high-end printers and ATS compatibility.</p>
       </div>
     </div>
   );

@@ -31,13 +31,14 @@ const App: React.FC = () => {
         try {
           setRewrittenResume(JSON.parse(saved));
         } catch (e) {
-          console.error("Failed to parse saved resume");
+          console.error("Failed to parse saved resume from vault");
         }
       }
     }
   }, [user]);
 
   const handleUploadAttempt = (text: string) => {
+    if (!text.trim()) return;
     setOriginalText(text);
     if (!user) {
       setPendingText(text);
@@ -49,19 +50,24 @@ const App: React.FC = () => {
 
   const executeAnalysis = async (text: string) => {
     setView('analyzing');
-    const loadingTexts = ["Auditing skills...", "Checking keyword density...", "Evaluating impact metrics..."];
+    const loadingTexts = [
+      "Auditing professional skills...", 
+      "Checking industry keyword density...", 
+      "Evaluating leadership impact metrics...",
+      "Generating realistic feedback report..."
+    ];
     let i = 0;
     const interval = setInterval(() => {
       setLoadingMessage(loadingTexts[i % loadingTexts.length]);
       i++;
-    }, 2000);
+    }, 2500);
 
     try {
       const result = await analyzeResume(text);
       setAnalysis(result);
       setView('results');
     } catch (error) {
-      alert("AI Analysis failed. Try again.");
+      alert(error instanceof Error ? error.message : "AI Analysis failed. Please refresh and try again.");
       setView('landing');
     } finally {
       clearInterval(interval);
@@ -73,18 +79,27 @@ const App: React.FC = () => {
       setView('pricing');
       return;
     }
-    if (!originalText) return;
+    if (!originalText) {
+      alert("Please upload your resume text first.");
+      setView('landing');
+      return;
+    }
 
     setView('analyzing');
-    setLoadingMessage("Executive Designer is crafting your professional story...");
+    setLoadingMessage("Executive AI Designer is reconstructing your career story using your data...");
     
     try {
       const data = await fullRewriteResume(originalText);
+      if (!data.content || !data.content.header) {
+        throw new Error("Received empty data from AI. Please try again.");
+      }
       setRewrittenResume(data.content);
-      if (user) localStorage.setItem(`vault_redo_${user.email}`, JSON.stringify(data.content));
+      if (user) {
+        localStorage.setItem(`vault_redo_${user.email}`, JSON.stringify(data.content));
+      }
       setView('full-rewrite');
     } catch (error) {
-      alert("Professional rewrite failed.");
+      alert(error instanceof Error ? error.message : "Professional rewrite failed. The model may be overloaded.");
       setView('results');
     }
   };
@@ -107,16 +122,22 @@ const App: React.FC = () => {
 
       <main className="flex-grow container mx-auto px-4 py-8 relative z-10">
         {view === 'landing' && (
-          <div className="space-y-12">
+          <div className="space-y-12 animate-in fade-in duration-1000">
             <Hero />
             <Uploader onUpload={handleUploadAttempt} />
           </div>
         )}
 
         {view === 'analyzing' && (
-          <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8">
-            <div className="w-20 h-20 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-slate-500 font-medium animate-pulse">{loadingMessage}</p>
+          <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8 animate-in fade-in zoom-in-95">
+            <div className="relative">
+              <div className="w-20 h-20 border-4 border-slate-200 rounded-full"></div>
+              <div className="absolute top-0 left-0 w-20 h-20 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+            <div className="text-center">
+              <h2 className="text-2xl font-black text-slate-900 mb-2">Genius Intelligence Active</h2>
+              <p className="text-slate-500 font-medium animate-pulse">{loadingMessage}</p>
+            </div>
           </div>
         )}
 
@@ -142,7 +163,19 @@ const App: React.FC = () => {
       </main>
 
       {showAuth && <AuthModal onAuthSuccess={handleAuthSuccess} onClose={() => setShowAuth(false)} />}
-      {showPayment && pendingPlan && <PaymentModal plan={pendingPlan} onPaymentSuccess={() => { setPlan(pendingPlan); setShowPayment(false); setView('results'); }} onClose={() => setShowPayment(false)} />}
+      
+      {showPayment && pendingPlan && (
+        <PaymentModal 
+          plan={pendingPlan} 
+          onPaymentSuccess={() => { 
+            setPlan(pendingPlan); 
+            setShowPayment(false); 
+            setView(analysis ? 'results' : 'landing'); 
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }} 
+          onClose={() => setShowPayment(false)} 
+        />
+      )}
     </div>
   );
 };
