@@ -11,6 +11,40 @@
         body { font-family: 'Inter', sans-serif; }
         .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(8px); }
         .blob { filter: blur(40px); opacity: 0.15; z-index: -1; }
+
+        @media print {
+            .no-print, 
+            header, 
+            footer, 
+            .blob, 
+            button, 
+            .sticky, 
+            .bg-indigo-600 { 
+                display: none !important; 
+            }
+            body { 
+                background: white !important; 
+                color: black !important;
+                padding: 0 !important;
+            }
+            .container { 
+                max-width: 100% !important; 
+                width: 100% !important; 
+                margin: 0 !important; 
+                padding: 0 !important;
+            }
+            .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl {
+                shadow: none !important;
+                border: 1px solid #e2e8f0 !important;
+            }
+            .bg-slate-900 {
+                background: #f1f5f9 !important;
+                color: #0f172a !important;
+                border: 1px solid #e2e8f0 !important;
+            }
+            .text-indigo-400 { color: #4f46e5 !important; }
+            .text-white { color: #0f172a !important; }
+        }
     </style>
 <script type="importmap">
 {

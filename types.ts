@@ -22,11 +22,15 @@ export interface User {
   name: string;
 }
 
-export type AppView = 'landing' | 'analyzing' | 'results' | 'pricing' | 'payment_pending';
+export type AppView = 'landing' | 'analyzing' | 'results' | 'pricing' | 'payment_pending' | 'full-rewrite';
 
 export enum Plan {
   FREE = 'FREE',
   BASIC = 'BASIC',
   UNLIMITED = 'UNLIMITED',
   SUPER_PREMIUM = 'SUPER_PREMIUM'
+}
+
+export interface FullRewriteResponse {
+  content: string; // The full markdown/text of the new resume
 }

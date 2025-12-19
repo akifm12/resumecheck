@@ -7,12 +7,15 @@ import Results from './components/Results';
 import Pricing from './components/Pricing';
 import AuthModal from './components/AuthModal';
 import PaymentModal from './components/PaymentModal';
+import FullRewriteView from './components/FullRewriteView';
 import { AppView, ResumeAnalysis, Plan, User } from './types';
-import { analyzeResume } from './services/gemini';
+import { analyzeResume, fullRewriteResume } from './services/gemini';
 
 const App: React.FC = () => {
   const [view, setView] = useState<AppView>('landing');
   const [analysis, setAnalysis] = useState<ResumeAnalysis | null>(null);
+  const [rewrittenResume, setRewrittenResume] = useState<string | null>(null);
+  const [originalText, setOriginalText] = useState<string | null>(null);
   const [plan, setPlan] = useState<Plan>(Plan.FREE);
   const [user, setUser] = useState<User | null>(null);
   const [showAuth, setShowAuth] = useState(false);
@@ -21,7 +24,16 @@ const App: React.FC = () => {
   const [pendingText, setPendingText] = useState<string | null>(null);
   const [loadingMessage, setLoadingMessage] = useState('Initializing AI scan...');
 
+  // Effect to load "Saved" resume under the user's "login"
+  useEffect(() => {
+    if (user) {
+      const saved = localStorage.getItem(`rewritten_${user.email}`);
+      if (saved) setRewrittenResume(saved);
+    }
+  }, [user]);
+
   const handleUploadAttempt = (text: string) => {
+    setOriginalText(text);
     if (!user) {
       setPendingText(text);
       setShowAuth(true);
@@ -60,6 +72,39 @@ const App: React.FC = () => {
     }
   };
 
+  const handleFullRewrite = async () => {
+    // Check if user has required plan
+    if (plan === Plan.FREE || plan === Plan.BASIC) {
+      setView('pricing');
+      return;
+    }
+
+    if (!originalText) {
+      alert("No resume text found. Please upload your resume first.");
+      setView('landing');
+      return;
+    }
+
+    setView('analyzing');
+    setLoadingMessage("AI is crafting your new professional story...");
+    
+    try {
+      const data = await fullRewriteResume(originalText);
+      setRewrittenResume(data.content);
+      
+      // Persist "under login"
+      if (user) {
+        localStorage.setItem(`rewritten_${user.email}`, data.content);
+      }
+      
+      setView('full-rewrite');
+    } catch (error) {
+      console.error("Rewrite failed", error);
+      alert("Failed to rewrite your resume. Please try again.");
+      setView('results');
+    }
+  };
+
   const handleAuthSuccess = (u: User) => {
     setUser(u);
     setShowAuth(false);
@@ -79,7 +124,9 @@ const App: React.FC = () => {
       setPlan(pendingPlan);
       setShowPayment(false);
       setPendingPlan(null);
-      setView('results');
+      if (view === 'pricing' && analysis) {
+        setView('results');
+      }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -87,8 +134,8 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
       {/* Background Blobs */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500 rounded-full blob -translate-y-1/2 translate-x-1/2"></div>
-      <div className="absolute bottom-0 left-0 w-80 h-80 bg-emerald-500 rounded-full blob translate-y-1/2 -translate-x-1/2"></div>
+      <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500 rounded-full blob -translate-y-1/2 translate-x-1/2 no-print"></div>
+      <div className="absolute bottom-0 left-0 w-80 h-80 bg-emerald-500 rounded-full blob translate-y-1/2 -translate-x-1/2 no-print"></div>
 
       <Header plan={plan} user={user} onNavigate={() => setView('landing')} />
 
@@ -106,7 +153,7 @@ const App: React.FC = () => {
           <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6">
             <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-slate-800 mb-2">Analyzing Resume</h2>
+              <h2 className="text-2xl font-bold text-slate-800 mb-2">AI Processing...</h2>
               <p className="text-slate-500 animate-pulse">{loadingMessage}</p>
             </div>
           </div>
@@ -117,6 +164,14 @@ const App: React.FC = () => {
             analysis={analysis} 
             plan={plan} 
             onUpgrade={() => setView('pricing')} 
+            onFullRewrite={handleFullRewrite}
+          />
+        )}
+
+        {view === 'full-rewrite' && rewrittenResume && (
+          <FullRewriteView 
+            content={rewrittenResume} 
+            onBack={() => setView('results')} 
           />
         )}
 
@@ -140,7 +195,7 @@ const App: React.FC = () => {
         />
       )}
 
-      <footer className="py-8 border-t border-slate-200 text-center text-slate-400 text-sm">
+      <footer className="py-8 border-t border-slate-200 text-center text-slate-400 text-sm no-print">
         <p>© 2024 ResumeGenius AI. Built for the Middle East career market.</p>
       </footer>
     </div>

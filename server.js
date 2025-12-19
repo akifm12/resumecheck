@@ -13,10 +13,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 app.post('/api/analyze', async (req, res) => {
   const { resumeText } = req.body;
-
-  if (!resumeText) {
-    return res.status(400).json({ error: "Resume text is required" });
-  }
+  if (!resumeText) return res.status(400).json({ error: "Resume text is required" });
 
   try {
     const response = await ai.models.generateContent({
@@ -60,18 +57,51 @@ app.post('/api/analyze', async (req, res) => {
         }
       }
     });
-
     res.json(JSON.parse(response.text));
   } catch (error) {
     console.error("Gemini Error:", error);
-    res.status(500).json({ error: "Failed to analyze resume. Please try again later." });
+    res.status(500).json({ error: "Failed to analyze resume." });
   }
 });
 
-// Serve static files from the Vite build
-app.use(express.static(path.join(__dirname, 'dist')));
+app.post('/api/full-rewrite', async (req, res) => {
+  const { resumeText } = req.body;
+  if (!resumeText) return res.status(400).json({ error: "Resume text is required" });
 
-// Fallback to index.html for React routing
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-pro-preview",
+      contents: `ACT AS A TOP-TIER RESUME WRITER. 
+      Completely rewrite the following resume into a professional, modern, high-impact version. 
+      Use the "Action-Result" bullet point format. 
+      Integrate quantifiable metrics. 
+      Ensure the tone is sophisticated and executive-ready.
+      
+      Format the response as a clean, structured document using clear headings.
+      
+      Original Resume Data:
+      """
+      ${resumeText}
+      """`,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            content: { type: Type.STRING, description: "The full text of the rewritten resume" }
+          },
+          required: ["content"]
+        }
+      }
+    });
+    res.json(JSON.parse(response.text));
+  } catch (error) {
+    console.error("Gemini Rewrite Error:", error);
+    res.status(500).json({ error: "Failed to rewrite resume." });
+  }
+});
+
+app.use(express.static(path.join(__dirname, 'dist')));
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
