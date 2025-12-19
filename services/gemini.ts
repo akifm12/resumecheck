@@ -8,10 +8,8 @@ export const analyzeResume = async (resumeText: string): Promise<ResumeAnalysis>
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `ACT AS AN ELITE RECRUITMENT AUDITOR. 
-      Analyze the provided resume text. 
-      Identify its strengths, weaknesses, and keyword gaps.
-      Provide specific, realistic feedback for each section found in the text.
+      contents: `ACT AS AN ELITE RECRUITMENT AUDITOR AT A TOP-TIER FIRM. 
+      Analyze the provided resume text for impact, structure, and ATS compatibility. 
       
       Resume text:
       """
@@ -53,7 +51,7 @@ export const analyzeResume = async (resumeText: string): Promise<ResumeAnalysis>
     return parsed;
   } catch (error) {
     console.error("Analysis Error:", error);
-    throw new Error("Analysis failed. Please check your text and try again.");
+    throw new Error("Analysis failed. Please ensure your file content is readable and try again.");
   }
 };
 
@@ -61,17 +59,16 @@ export const fullRewriteResume = async (resumeText: string): Promise<FullRewrite
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-preview",
-      contents: `ACT AS A WORLD-CLASS EXECUTIVE RESUME WRITER.
+      contents: `ACT AS A TOP 1% EXECUTIVE RESUME WRITER. 
       
-      YOUR TASK:
-      1. Extract ALL factual data from the user's provided resume text (Experience, Education, Skills, Contact info).
-      2. Rewrite the content to be high-impact, result-oriented, and sophisticated.
-      3. DO NOT MAKE UP FICTIONAL DATA. Use ONLY the facts found in the provided text.
-      4. Use the "Action-Result" framework for all bullet points.
-      5. Quantify achievements where possible based on the text provided.
-      6. Return the data in a structured JSON format.
-      
-      USER RESUME TEXT:
+      STRICT REQUIREMENTS:
+      1. DATA FIDELITY: You must use ONLY the factual data from the provided text (Companies, Dates, Degrees, Skills). 
+      2. ZERO HALLUCINATION: Do not invent new jobs, schools, or certifications.
+      3. IMPACT OVERHAUL: Rewrite every achievement using the "Action-Verb + Numerical Result + Context" framework.
+      4. SOPHISTICATION: Use an executive tone suitable for C-Suite or high-level professional roles.
+      5. ATS OPTIMIZATION: Ensure logical structure and clear keywords found in the original text.
+
+      USER SOURCE TEXT:
       """
       ${resumeText}
       """`,
@@ -87,7 +84,7 @@ export const fullRewriteResume = async (resumeText: string): Promise<FullRewrite
                   type: Type.OBJECT,
                   properties: {
                     name: { type: Type.STRING },
-                    title: { type: Type.STRING, description: "Professional title based on current experience" },
+                    title: { type: Type.STRING },
                     email: { type: Type.STRING },
                     phone: { type: Type.STRING },
                     location: { type: Type.STRING },
@@ -96,7 +93,7 @@ export const fullRewriteResume = async (resumeText: string): Promise<FullRewrite
                   },
                   required: ["name", "title", "email", "phone", "location"]
                 },
-                summary: { type: Type.STRING, description: "A high-impact 3-4 sentence summary of the candidate's career value proposition." },
+                summary: { type: Type.STRING },
                 experience: {
                   type: Type.ARRAY,
                   items: {
@@ -106,7 +103,7 @@ export const fullRewriteResume = async (resumeText: string): Promise<FullRewrite
                       position: { type: Type.STRING },
                       dateRange: { type: Type.STRING },
                       location: { type: Type.STRING },
-                      bullets: { type: Type.ARRAY, items: { type: Type.STRING }, description: "High-impact, result-oriented bullet points." }
+                      bullets: { type: Type.ARRAY, items: { type: Type.STRING } }
                     },
                     required: ["company", "position", "dateRange", "location", "bullets"]
                   }
@@ -129,7 +126,7 @@ export const fullRewriteResume = async (resumeText: string): Promise<FullRewrite
                   items: {
                     type: Type.OBJECT,
                     properties: {
-                      category: { type: Type.STRING, description: "e.g., Technical Skills, Leadership, Soft Skills" },
+                      category: { type: Type.STRING },
                       items: { type: Type.ARRAY, items: { type: Type.STRING } }
                     },
                     required: ["category", "items"]
@@ -144,10 +141,9 @@ export const fullRewriteResume = async (resumeText: string): Promise<FullRewrite
       }
     });
 
-    const result = JSON.parse(response.text || "{}");
-    return result;
+    return JSON.parse(response.text || "{}");
   } catch (error) {
     console.error("Full Rewrite Error:", error);
-    throw new Error("Professional rewrite failed. The model may be busy, please try again.");
+    throw new Error("The AI Writer encountered an error with this document. Try pasting the text directly.");
   }
 };
